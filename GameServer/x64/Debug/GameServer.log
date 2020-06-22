@@ -1,0 +1,27 @@
+﻿  stdafx.cpp
+  sha256.cpp
+d:\it things\vs2015 pj\gameserver\gameserver\sha256.cpp(127): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+  process_database.cpp
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(307): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 2 has type 'std::string'
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(307): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 3 has type 'std::string'
+  GameServer.cpp
+d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(119): warning C4311: 'type cast': pointer truncation from 'LPPER_HANDLE_DATA' to 'DWORD'
+d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(119): warning C4302: 'type cast': truncation from 'LPPER_HANDLE_DATA' to 'DWORD'
+d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(115): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(115): note: consider using '%lld' in the format string
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(115): note: consider using '%Id' in the format string
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(115): note: consider using '%I64d' in the format string
+d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(171): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(171): note: consider using '%lld' in the format string
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(171): note: consider using '%Id' in the format string
+  d:\it things\vs2015 pj\gameserver\gameserver\gameserver.cpp(171): note: consider using '%I64d' in the format string
+  check_format_regex.cpp
+d:\it things\vs2015 pj\gameserver\gameserver\check_format_regex.h : warning C4819: The file contains a character that cannot be represented in the current code page (932). Save the file in Unicode format to prevent data loss
+  checksum.cpp
+  Generating Code...
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(206): warning C4715: 'regist': not all control paths return a value
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(226): warning C4715: 'regist': not all control paths return a value
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(251): warning C4715: 'updatePoint': not all control paths return a value
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.cpp(267): warning C4715: 'updateNickname': not all control paths return a value
+  GameServer.vcxproj -> D:\IT things\VS2015 PJ\GameServer\x64\Debug\GameServer.exe
+  GameServer.vcxproj -> D:\IT things\VS2015 PJ\GameServer\x64\Debug\GameServer.pdb (Full PDB)
