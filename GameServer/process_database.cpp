@@ -22,6 +22,7 @@ const int PORT_DB = 3306;
 /* ----||  ------------ ||----*/
 using namespace std;
 vector <USER> listLoginUser;
+vector <USER> listActiveUser;
 MYSQL* connectionMysql() {
 	MYSQL* conn;
 	conn = mysql_init(0);
@@ -176,6 +177,8 @@ USER login(string email, string pass) {
 					user.point = atoi(row[4]);
 			}
 			listLoginUser.push_back(user);
+			listActiveUser.push_back(user);
+
 		}
 		else {
 			cout << mysql_error(conn) << endl;
@@ -225,13 +228,19 @@ int regist(string email, string pass, string nickname) {
 
 }
 int logout(int id) {
-	for (int i = 0; i < listLoginUser.size(); i++) {
-		if (id == listLoginUser.at(i).id) {
-			listLoginUser.erase(listLoginUser.begin() + i);
-			return 1;
+	for (int i = 0; i < listActiveUser.size(); i++) {
+		if (id == listActiveUser.at(i).id) {
+			listActiveUser.erase(listActiveUser.begin() + i);
 		}
 	}
-	return 0; //khong tim thay id
+		for (int i = 0; i < listLoginUser.size(); i++) {
+			if (id == listLoginUser.at(i).id) {
+				listLoginUser.erase(listLoginUser.begin() + i);
+				return 1;
+			}
+		}
+		return 0; //khong tim thay id
+	
 }
 int updatePoint(int id, int point) {
 	MYSQL * conn = connectionMysql();
@@ -311,4 +320,7 @@ void show(vector <USER> users) {
 }
 vector <user_s> getlistUsersLogin() {
 	return listLoginUser;
+}
+vector <user_s> getlistUsersActive() {
+	return listActiveUser;
 }

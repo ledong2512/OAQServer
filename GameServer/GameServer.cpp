@@ -13,6 +13,7 @@
 #include "cstring"
 #include "process.h"
 #include"InOutHelper.h"
+#include"process_database.h"
 using namespace std;
 #define BUFF_SIZE 2048
 #define PORT 5500
@@ -41,6 +42,8 @@ typedef struct {
 	int length, length1, length2;
 	char  outputMes1[BUFF_SIZE], outputMes2[BUFF_SIZE];
 	char inputMess[BUFF_SIZE];
+	USER client;
+	int clientWindowStt = 0;//0 is not login yet, 1 is loged in, 2 is in the game
 } PER_HANDLE_DATA, *LPPER_HANDLE_DATA;
 
 unsigned __stdcall serverWorkerThread(LPVOID CompletionPortID);
@@ -160,6 +163,9 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 	while (TRUE) {
 		if (GetQueuedCompletionStatus(completionPort, &transferredBytes,
 			(PULONG_PTR)&perHandleData, (LPOVERLAPPED *)&perIoData, INFINITE) == 0) {
+			printf("Socket number %d got close...\n", perHandleData->socket);
+			//logout
+			logout(perHandleData->client.id);
 			printf("GetQueuedCompletionStatus() failed with error %d\n", GetLastError());
 			return 0;
 		}
@@ -190,19 +196,38 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
 			printf("\n");
 			perHandleData->length = headerHandle(perIoData->buffer);
-			ZeroMemory(perHandleData->inputMess, sizeof(perHandleData->inputMess));// reset data
-			memcpy(perHandleData->inputMess, perIoData->buffer,4);
-			perIoData->sentBytes += transferredBytes;
-			perIoData->recvBytes = 0;
+			if (perHandleData->length == 0) {// message without payload
+				perHandleData->status = 1;// reset status;
+				ZeroMemory(perHandleData->inputMess, sizeof(perHandleData->inputMess));// reset data
+				memcpy(perHandleData->inputMess, perIoData->buffer, 4);
+				ZeroMemory(perHandleData->outputMes1, sizeof(perHandleData->outputMes1));// reset data
+				ZeroMemory(perHandleData->outputMes2, sizeof(perHandleData->outputMes2));// reset data
+				preProcess(perHandleData->inputMess, perHandleData->client, perHandleData->clientWindowStt);
+				revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2);
+				unsigned int tmp = perHandleData->outputMes1[0];
+				updateClientStatus((int) tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt);
+				perIoData->recvBytes = transferredBytes;
+				perIoData->sentBytes = 0;
+				perIoData->operation = SEND;
+			}
+			else {
+				ZeroMemory(perHandleData->inputMess, sizeof(perHandleData->inputMess));// reset data
+				memcpy(perHandleData->inputMess, perIoData->buffer, 4);
+				perIoData->sentBytes += transferredBytes;
+				perIoData->recvBytes = 0;
+			}
 		}
-		else if (perIoData->operation == RECEIVE) {//recv-ed data
+		else if (perIoData->operation == RECEIVE) {//recv-ed data	
 			perHandleData->status = 1;// reset status;
 			perIoData->buffer[transferredBytes] = 0;
 			perIoData->dataBuff.buf = perIoData->buffer;
 			strcat(perHandleData->inputMess + 4, perIoData->dataBuff.buf);
 			ZeroMemory(perHandleData->outputMes1, sizeof(perHandleData->outputMes1));// reset data
 			ZeroMemory(perHandleData->outputMes2, sizeof(perHandleData->outputMes2));// reset data
+			preProcess(perHandleData->inputMess, perHandleData->client, perHandleData->clientWindowStt);
 			revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2);
+			unsigned int tmp = perHandleData->outputMes1[0];
+			updateClientStatus((int)tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt);
 			perIoData->recvBytes = transferredBytes;
 			perIoData->sentBytes = 0;
 			perIoData->operation = SEND;
@@ -222,7 +247,8 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			perIoData->dataBuff.buf = perHandleData->outputMes1;
 			perIoData->dataBuff.len = perHandleData->length1;
 			perIoData->operation = SEND;
-			
+			for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+			printf("\n");
 			if (WSASend(perHandleData->socket,
 				&(perIoData->dataBuff),
 				1,

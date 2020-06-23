@@ -1,3 +1,4 @@
+#pragma once
 #include "stdafx.h"
 #include "mysql.h"
 #include "iostream"
@@ -39,3 +40,4 @@ int updatePass(string email, string nickname, string pass);
 int deleteAccount(int id);
 void show(vector <USER> users);
 vector <user_s> getlistUsersLogin();
+vector <user_s> getlistUsersActive();
