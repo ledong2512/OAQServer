@@ -9,9 +9,11 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <chrono>
+#include <ctime>
 #include "sha256.h"
 
-
+typedef std::chrono::system_clock Clock;
 
 using namespace std;
 typedef struct USER {
@@ -20,7 +22,7 @@ typedef struct USER {
 	string password;
 	string nickname;
 	int point;
-	
+	time_t lastTime = 0;
 } user_s;
 
 MYSQL* connectionMysql();

@@ -22,7 +22,7 @@ using namespace std;
 #define SEND 1
 #pragma comment(lib, "Ws2_32.lib")
 #pragma warning (disable:4996)
-
+map <string, SOCKET> nickNameToSOCKET;
 
 // Structure definition
 typedef struct {
@@ -159,7 +159,8 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 	LPPER_HANDLE_DATA perHandleData;
 	LPPER_IO_OPERATION_DATA perIoData;
 	DWORD flags;
-	
+	int sendType;
+	SOCKET rival;
 	while (TRUE) {
 		if (GetQueuedCompletionStatus(completionPort, &transferredBytes,
 			(PULONG_PTR)&perHandleData, (LPOVERLAPPED *)&perIoData, INFINITE) == 0) {
@@ -203,9 +204,9 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 				ZeroMemory(perHandleData->outputMes1, sizeof(perHandleData->outputMes1));// reset data
 				ZeroMemory(perHandleData->outputMes2, sizeof(perHandleData->outputMes2));// reset data
 				preProcess(perHandleData->inputMess, perHandleData->client, perHandleData->clientWindowStt);
-				revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2);
-				unsigned int tmp = perHandleData->outputMes1[0];
-				updateClientStatus((int) tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt);
+				revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2, rival, sendType);
+				unsigned char tmp = perHandleData->outputMes1[0];
+				updateClientStatus((int)tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt, perHandleData->socket);
 				perIoData->recvBytes = transferredBytes;
 				perIoData->sentBytes = 0;
 				perIoData->operation = SEND;
@@ -225,9 +226,9 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			ZeroMemory(perHandleData->outputMes1, sizeof(perHandleData->outputMes1));// reset data
 			ZeroMemory(perHandleData->outputMes2, sizeof(perHandleData->outputMes2));// reset data
 			preProcess(perHandleData->inputMess, perHandleData->client, perHandleData->clientWindowStt);
-			revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2);
-			unsigned int tmp = perHandleData->outputMes1[0];
-			updateClientStatus((int)tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt);
+			revMessage(perHandleData->inputMess, perHandleData->outputMes1, perHandleData->length1, perHandleData->outputMes2, perHandleData->length2,rival,sendType);
+			unsigned char tmp = perHandleData->outputMes1[0];
+			updateClientStatus((int)tmp, perHandleData->outputMes2, perHandleData->length2, perHandleData->client, perHandleData->clientWindowStt,perHandleData->socket);
 			perIoData->recvBytes = transferredBytes;
 			perIoData->sentBytes = 0;
 			perIoData->operation = SEND;
@@ -247,18 +248,81 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			perIoData->dataBuff.buf = perHandleData->outputMes1;
 			perIoData->dataBuff.len = perHandleData->length1;
 			perIoData->operation = SEND;
-			for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
-			printf("\n");
-			if (WSASend(perHandleData->socket,
-				&(perIoData->dataBuff),
-				1,
-				&transferredBytes,
-				0,
-				&(perIoData->overlapped),
-				NULL) == SOCKET_ERROR) {
-				if (WSAGetLastError() != ERROR_IO_PENDING) {
-					printf("WSASend() failed with error %d\n", WSAGetLastError());
-					return 0;
+			cout << "Send: " << sendType << endl;
+			if (sendType % 2 == 1) {
+				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+				printf("\n");
+				if (WSASend(perHandleData->socket,
+					&(perIoData->dataBuff),
+					1,
+					&transferredBytes,
+					0,
+					&(perIoData->overlapped),
+					NULL) == SOCKET_ERROR) {
+					if (WSAGetLastError() != ERROR_IO_PENDING) {
+						printf("WSASend() failed with error %d\n", WSAGetLastError());
+						return 0;
+					}
+				}
+			}
+			if (sendType > 1&& sendType!=4){
+
+				cout << rival << endl;
+				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+				printf("\n");
+				if (rival == 0) {//the rival is offline
+
+				}
+				else if (send(rival, perHandleData->outputMes2, perHandleData->length2, 0) == SOCKET_ERROR) {
+					printf("send() failed with error %d\n", WSAGetLastError());
+				}
+				if (sendType == 2) {
+					perIoData->recvBytes = 0;
+					perIoData->operation = RECEIVE;
+					flags = 0;
+					ZeroMemory(&(perIoData->overlapped), sizeof(OVERLAPPED));
+					perIoData->dataBuff.len = 4;
+					perIoData->dataBuff.buf = perIoData->buffer;
+					if (WSARecv(perHandleData->socket,
+						&(perIoData->dataBuff),
+						1,
+						&transferredBytes,
+						&flags,
+						&(perIoData->overlapped), NULL) == SOCKET_ERROR) {
+						if (WSAGetLastError() != ERROR_IO_PENDING) {
+							printf("WSARecv() failed with error %d\n", WSAGetLastError());
+							return 0;
+						}
+
+
+
+					}
+
+				}
+			}
+			if (sendType == 4) {
+				vector <USER> listActiveUser = getlistUsersActive();
+				for (int i = 0; i < listActiveUser.size(); i++) {
+					if (send(nickNameToSOCKET[listActiveUser.at(i).nickname], perHandleData->outputMes1, perHandleData->length1, 0) == SOCKET_ERROR) {
+						printf("send() failed with error %d\n", WSAGetLastError());
+					}
+				}
+				perIoData->recvBytes = 0;
+				perIoData->operation = RECEIVE;
+				flags = 0;
+				ZeroMemory(&(perIoData->overlapped), sizeof(OVERLAPPED));
+				perIoData->dataBuff.len = 4;
+				perIoData->dataBuff.buf = perIoData->buffer;
+				if (WSARecv(perHandleData->socket,
+					&(perIoData->dataBuff),
+					1,
+					&transferredBytes,
+					&flags,
+					&(perIoData->overlapped), NULL) == SOCKET_ERROR) {
+					if (WSAGetLastError() != ERROR_IO_PENDING) {
+						printf("WSARecv() failed with error %d\n", WSAGetLastError());
+						return 0;
+					}
 				}
 			}
 		}

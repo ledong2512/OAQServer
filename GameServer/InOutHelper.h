@@ -2,6 +2,7 @@
 #include"MessagesCode.h"
 #include"process_database.h"
 #pragma warning (disable:4996)
+extern map <string, SOCKET> nickNameToSOCKET;
 void makeItCombine(int messageCode, char *data, int dataLength, char *arrayOut) {
 	//combine those stuff to arrayOut
 	arrayOut[0] = messageCode;
@@ -15,7 +16,7 @@ int headerHandle(char *message) {// handle the response message
 	length[0] = message[1];length[1] = message[2];length[2] = message[3];
 	return int(length[2]) + int(length[1]) * 256 + int(length[0]) * 256 * 256;
 }
-void getIdAndPass(char *id, char*pass,char* message) { //[IN] message, [OUT]id,pass: the id and password from message
+void getIdAndPass(char *id, char*pass,char* message) { //[IN] message, [OUT]id,pass: the id and password from message or 2 string split by ' '
 	int i = 4;
 	int messageLength = headerHandle(message);
 	messageLength += 4;
@@ -44,20 +45,44 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 		inputMes[2] = (tmp / 256) % 256;
 		inputMes[3] = tmp % 256;
 	}
+	else if ((inputMes[0] == char(CHAT))) {
+		if (user.lastTime != 0) {
+			auto sec =  Clock::now() - std::chrono::system_clock::from_time_t(user.lastTime);
+			if (std::chrono::duration_cast<std::chrono::seconds>(sec).count() < 30) {
+				inputMes[1] = 0;
+				inputMes[2] = 0;
+				inputMes[3] = 0;
+				return;
+			}
+		}
+		auto now = Clock::now();
+		user.lastTime = Clock::to_time_t(now);
+		int length = headerHandle(inputMes);
+		char data_c[5120];
+		memcpy(data_c, inputMes + 4, length);
+		data_c[length] = 0;
+		string name = "["+user.nickname+"]" + " : ";
+		name += string(data_c);
+		strcpy(data_c, name.c_str());
+		makeItCombine(CHAT, data_c, strlen(data_c), inputMes);
+	}
 }
-void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,int &clientWindowStt) {
+void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,int &clientWindowStt,SOCKET &client) {
 	/*this is post-process function after recv message, update perHandleData of client
 	[in] returnMess: the code of the return message
 	[IN] inputMes: the inputdata to process, usually is the outputMes2 from revMessage
 	[in] length: length of inputMes
 	[out]clientWindowStt: clientWindowStt of perHandleData
 	[out] user: user of perHandleData
+	[in] socket: help to update datastruct nickNameToSOCKET
 	*/
 	switch (returnMess)
 	{
 	case(LOGIN_SUCCESS): {
 		clientWindowStt = 1;
+		
 		memcpy(&user, inputMes, length);
+		nickNameToSOCKET[user.nickname] = client;
 		break;
 	}
 	case(LOGOUT_SUCCESS): {
@@ -66,7 +91,7 @@ void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,i
 	}
 	}
 }
-void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outputMes2, int &lengthOutMes2) {
+void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outputMes2, int &lengthOutMes2,SOCKET &rival, int &sendType) {
 	/*this is process function after recv message
 	[IN] inputMes: the inputdata to process, usually is the messages recv from client afte pre-processing
 	[out] outputMes1: the output of the process, usually is the messages send back to client
@@ -74,20 +99,25 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 	[out] outputMes2: the output of the process, usually is the messages send back to another client ( rival player in the game)
 	sometime is the raw data to update perHandleData of client
 	[out] lengthOutMes2; length of outputMes2
+	[out] rival: SOCKET of rival client
+	[out] send type 0 is send to no one, 1 is send back, 2 is send to rival client, 3 is send to both, 4 is broad cass
 	*/
 	lengthOutMes1 = 4;
 	lengthOutMes2 = 4;
-
+	sendType = 1;
 	if (inputMes[0] == char(LOGIN_MESSAGE)) {
 		char id[50], pass[50];
 		USER result;
 		getIdAndPass(id, pass, inputMes);
 		result = login(id, pass);
-		if (result.id == -1) {
-			outputMes1[0] = char(LOGIN_FAIL);
-			outputMes1[1] = 0;
-			outputMes1[2] = 0;
-			outputMes1[3] = 0;
+		if (result.id == -1) {// worng information
+			lengthOutMes1 = strlen(WORNG_INFOMATION) + 4;
+			makeItCombine(ERROR_MESSAGE, WORNG_INFOMATION, lengthOutMes1 - 4, outputMes1);
+
+		}
+		else if (result.id == -2) {//already loged in on another client
+			lengthOutMes1 = strlen(ALREADY_LOGGED_IN) + 4;
+			makeItCombine(ERROR_MESSAGE, ALREADY_LOGGED_IN, lengthOutMes1 - 4, outputMes1);
 		}
 		else {
 			char nickNameAndRank[100];
@@ -106,7 +136,8 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		outputMes1[1] = 0;
 		outputMes1[2] = 0;
 		outputMes1[3] = 0;
-	}if (inputMes[0] == char(GET_LIST_PLAYER)) {
+	}
+	else if (inputMes[0] == char(GET_LIST_PLAYER)) {
 		int id = headerHandle(inputMes);
 		vector <USER> listActiveUser = getlistUsersActive();
 		string data;
@@ -123,5 +154,28 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		strcpy(data_c, data.c_str());
 		makeItCombine(LIST_PLAYER, data_c, strlen(data_c), outputMes1);
 		lengthOutMes1 = strlen(data_c) + 4;
+	}
+	else if (inputMes[0] == char(CONNECT_TO_PLAY)) {
+		sendType = 2;
+		char rivalNickName[100],playerName[100];
+		getIdAndPass(rivalNickName, playerName, inputMes);
+		rival = nickNameToSOCKET[rivalNickName];
+		makeItCombine(CONNECT_TO_PLAY, playerName, strlen(playerName), outputMes2);
+		lengthOutMes2 = strlen(playerName) + 4;
+	}
+	else if (inputMes[0] == char(CHAT)) {
+		sendType = 4;
+		char data_c[5120];
+		int length = headerHandle(inputMes);
+		if (length == 0) {
+			sendType = 1;
+			makeItCombine(ERROR_MESSAGE, MESSAGE_NOT_YET, 3, outputMes1);
+			lengthOutMes1 = 7;
+			return;
+		}
+		memcpy(data_c, inputMes + 4, length);
+		data_c[length] = 0;
+		makeItCombine(CHAT, data_c, length, outputMes1);
+		lengthOutMes1 = length + 4;
 	}
 }

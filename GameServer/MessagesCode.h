@@ -1,4 +1,6 @@
 #pragma once
+#define ERROR_MESSAGE 255
+
 #define LOGIN_MESSAGE 1
 #define LOGIN_SUCCESS 2
 #define LOGIN_FAIL 3
@@ -7,7 +9,11 @@
 
 
 
-
-
+#define CHAT 70
 #define GET_LIST_PLAYER 60
 #define LIST_PLAYER 61
+#define CONNECT_TO_PLAY 51
+
+#define WORNG_INFOMATION "001"
+#define ALREADY_LOGGED_IN "002"
+#define MESSAGE_NOT_YET "190"

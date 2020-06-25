@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <map>
 #include <string>
 #include "sha256.h"
 #include "process_database.h"
@@ -20,6 +21,7 @@ const char * PASSWORD_DB = "root";
 const char * TABLE_NAME_DB = "o_an_quan";
 const int PORT_DB = 3306;
 /* ----||  ------------ ||----*/
+extern map <string, SOCKET> nickNameToSOCKET;
 using namespace std;
 vector <USER> listLoginUser;
 vector <USER> listActiveUser;
@@ -156,7 +158,7 @@ USER login(string email, string pass) {
 	USER user;
 	user.id = -1;
 	for (int i = 0; i < listLoginUser.size(); i++) {
-		if (email.compare(listLoginUser.at(i).email) == 0) return user;
+		if (email.compare(listLoginUser.at(i).email) == 0) { user.id = -2;return user; }
 	}
 	if (conn) {
 		string query = "SELECT * from o_an_quan.account WHERE email ='" + email + "' and password ='" + sha256(pass) + "';";
@@ -175,9 +177,10 @@ USER login(string email, string pass) {
 					user.nickname = row[3];
 				if (row[4] != NULL)
 					user.point = atoi(row[4]);
+				listLoginUser.push_back(user);
+				listActiveUser.push_back(user);
 			}
-			listLoginUser.push_back(user);
-			listActiveUser.push_back(user);
+			
 
 		}
 		else {
@@ -235,6 +238,7 @@ int logout(int id) {
 	}
 		for (int i = 0; i < listLoginUser.size(); i++) {
 			if (id == listLoginUser.at(i).id) {
+				nickNameToSOCKET.erase(listLoginUser.at(i).nickname);
 				listLoginUser.erase(listLoginUser.begin() + i);
 				return 1;
 			}
