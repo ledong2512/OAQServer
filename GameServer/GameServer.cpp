@@ -23,7 +23,8 @@ using namespace std;
 #pragma comment(lib, "Ws2_32.lib")
 #pragma warning (disable:4996)
 map <string, SOCKET> nickNameToSOCKET;
-
+map <int, string> offerFightToNickname;
+int offerFightNumber;
 // Structure definition
 typedef struct {
 	WSAOVERLAPPED overlapped;
@@ -49,6 +50,7 @@ typedef struct {
 unsigned __stdcall serverWorkerThread(LPVOID CompletionPortID);
 int _tmain(int argc, char* argv[])
 {
+	offerFightNumber = 0;
 	SOCKADDR_IN serverAddr;
 	SOCKET listenSock, acceptSock;
 	HANDLE completionPort;

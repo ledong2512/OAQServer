@@ -1,5 +1,6 @@
 #pragma once
 #define ERROR_MESSAGE 255
+#define WORNG_SYSTAX 254
 
 #define LOGIN_MESSAGE 1
 #define LOGIN_SUCCESS 2
@@ -13,8 +14,12 @@
 #define GET_LIST_PLAYER 60
 #define LIST_PLAYER 61
 #define CONNECT_TO_PLAY 51
+#define AGREE_TO_PLAY 52
+#define START 56
+#define RANK_DIF_ERROR 71
 
 #define WORNG_INFOMATION "001"
 #define ALREADY_LOGGED_IN "002"
 #define MESSAGE_NOT_YET "190"
 #define RIVAL_OFFLINE "191"
+#define DIFF_RANK "192"

@@ -3,6 +3,8 @@
 #include"process_database.h"
 #pragma warning (disable:4996)
 extern map <string, SOCKET> nickNameToSOCKET;
+extern map <int, string> offerFightToNickname;
+extern int offerFightNumber ;
 void makeItCombine(int messageCode, char *data, int dataLength, char *arrayOut) {
 	//combine those stuff to arrayOut
 	arrayOut[0] = messageCode;
@@ -66,6 +68,45 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 		strcpy(data_c, name.c_str());
 		makeItCombine(CHAT, data_c, strlen(data_c), inputMes);
 	}
+	else if ((inputMes[0] == char(CONNECT_TO_PLAY))) {
+		char rivalNickName[100], playerName[100];
+		getIdAndPass(rivalNickName, playerName, inputMes);
+		string check = string(playerName);
+		if (check != user.nickname|| clientWindowStt!=1) {
+			inputMes[0] = CONNECT_TO_PLAY;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		};
+		USER checkU = searchUserByNickname(string(rivalNickName));
+		if (abs(checkU.point-user.point)>10) {
+			inputMes[0] = RANK_DIF_ERROR;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		}
+	}
+	else if ((inputMes[0] == char(AGREE_TO_PLAY))) {
+		string name;
+		char name_c[100],num_c[10];
+		getIdAndPass(name_c, num_c, inputMes);
+		name = string(name_c);
+		if (offerFightToNickname[atoi(num_c)] != name|| clientWindowStt!=1) {// worng systax
+			inputMes[1] = WORNG_SYSTAX;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+		}
+		else {
+			char data_c[5120];
+			name += " ";
+			name += user.nickname;
+			strcpy(data_c, name.c_str());
+			makeItCombine(AGREE_TO_PLAY, data_c, strlen(data_c), inputMes);
+		}
+	}
 }
 void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,int &clientWindowStt,SOCKET &client) {
 	/*this is post-process function after recv message, update perHandleData of client
@@ -105,7 +146,13 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 	lengthOutMes1 = 4;
 	lengthOutMes2 = 4;
 	sendType = 1;
-	if (inputMes[0] == char(LOGIN_MESSAGE)) {
+	if (inputMes[0] == char(WORNG_SYSTAX)) {
+		outputMes1[0] = 0;
+		outputMes1[1] = 0;
+		outputMes1[2] = 0;
+		outputMes1[3] = 0;
+	}
+	else if (inputMes[0] == char(LOGIN_MESSAGE)) {
 		char id[50], pass[50];
 		USER result;
 		getIdAndPass(id, pass, inputMes);
@@ -156,15 +203,32 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		lengthOutMes1 = strlen(data_c) + 4;
 	}
 	else if (inputMes[0] == char(CONNECT_TO_PLAY)) {
+		if (headerHandle(inputMes) == 0) {
+			outputMes1[0] = 0;
+			outputMes1[1] = 0;
+			outputMes1[2] = 0;
+			outputMes1[3] = 0;
+			lengthOutMes1 = 4;
+			return;
+		}
 		sendType = 2;
 		char rivalNickName[100],playerName[100];
 		getIdAndPass(rivalNickName, playerName, inputMes);
 		rival = nickNameToSOCKET[rivalNickName];
+		offerFightNumber++;
+		offerFightNumber %= 10000;
+		int num = offerFightNumber;
+		--num;
+		offerFightToNickname[num] = playerName;
+		char numChar[10];
+		_itoa_s(num, numChar, 10);
+		strcat(playerName, " ");
+		strcat(playerName, numChar);
 		makeItCombine(CONNECT_TO_PLAY, playerName, strlen(playerName), outputMes2);
 		lengthOutMes2 = strlen(playerName) + 4;
 		//prepare error mess
 		makeItCombine(ERROR_MESSAGE, RIVAL_OFFLINE, 3, outputMes1);
-		lengthOutMes1 = strlen(playerName) + 4;
+		lengthOutMes1 = 7;
 
 	}
 	else if (inputMes[0] == char(CHAT)) {
@@ -181,5 +245,15 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		data_c[length] = 0;
 		makeItCombine(CHAT, data_c, length, outputMes1);
 		lengthOutMes1 = length + 4;
+	}
+	else if (inputMes[0] == char(RANK_DIF_ERROR)) {
+		makeItCombine(ERROR_MESSAGE, DIFF_RANK, 3, outputMes1);
+		lengthOutMes1 = 7;
+	}
+	else if (inputMes[0] == char(AGREE_TO_PLAY)) {
+		sendType = 3;
+		char rivalNickName[100], playerName[100];
+		getIdAndPass(rivalNickName, playerName, inputMes);
+		rival = nickNameToSOCKET[rivalNickName];
 	}
 }
