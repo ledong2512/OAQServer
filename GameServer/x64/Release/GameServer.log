@@ -7,6 +7,7 @@ d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(155): warning C4267: 
 d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(156): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(163): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
 d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(164): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(167): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 GameServer.cpp(121): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
   GameServer.cpp(121): note: consider using '%lld' in the format string
   GameServer.cpp(121): note: consider using '%Id' in the format string

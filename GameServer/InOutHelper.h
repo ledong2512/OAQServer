@@ -162,6 +162,10 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		rival = nickNameToSOCKET[rivalNickName];
 		makeItCombine(CONNECT_TO_PLAY, playerName, strlen(playerName), outputMes2);
 		lengthOutMes2 = strlen(playerName) + 4;
+		//prepare error mess
+		makeItCombine(ERROR_MESSAGE, RIVAL_OFFLINE, 3, outputMes1);
+		lengthOutMes1 = strlen(playerName) + 4;
+
 	}
 	else if (inputMes[0] == char(CHAT)) {
 		sendType = 4;

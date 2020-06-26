@@ -271,7 +271,9 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
 				printf("\n");
 				if (rival == 0) {//the rival is offline
-
+					if (send(perHandleData->socket, perHandleData->outputMes1, perHandleData->length1, 0) == SOCKET_ERROR) {
+						printf("send() failed with error %d\n", WSAGetLastError());
+					}
 				}
 				else if (send(rival, perHandleData->outputMes2, perHandleData->length2, 0) == SOCKET_ERROR) {
 					printf("send() failed with error %d\n", WSAGetLastError());
