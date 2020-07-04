@@ -11,6 +11,9 @@
 #include <string>
 #include <chrono>
 #include <ctime>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include "sha256.h"
 
 typedef std::chrono::system_clock Clock;
@@ -24,7 +27,12 @@ typedef struct USER {
 	int point;
 	time_t lastTime = 0;
 } user_s;
-
+typedef struct GAME {
+	int number;
+	string player[2];
+	boolean ready[2] = { false,false };
+	int inUse = 0;
+};
 MYSQL* connectionMysql();
 vector <USER> getAllAccount();
 

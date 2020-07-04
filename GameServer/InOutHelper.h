@@ -1,10 +1,13 @@
 #pragma once
+#include<Windows.h>
 #include"MessagesCode.h"
 #include"process_database.h"
 #pragma warning (disable:4996)
 extern map <string, SOCKET> nickNameToSOCKET;
 extern map <int, string> offerFightToNickname;
 extern int offerFightNumber ;
+extern map <int, GAME> gameNum;
+extern int boardNum;
 void makeItCombine(int messageCode, char *data, int dataLength, char *arrayOut) {
 	//combine those stuff to arrayOut
 	arrayOut[0] = messageCode;
@@ -41,7 +44,8 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 		inputMes[1] = (tmp / (256 * 256)) % 256;
 		inputMes[2] = (tmp / 256) % 256;
 		inputMes[3] = tmp % 256;
-	} else if ((inputMes[0] == char(GET_LIST_PLAYER))) {
+	} 
+	else if ((inputMes[0] == char(GET_LIST_PLAYER))) {
 		int tmp = user.id;
 		inputMes[1] = (tmp / (256 * 256)) % 256;
 		inputMes[2] = (tmp / 256) % 256;
@@ -72,13 +76,20 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 		char rivalNickName[100], playerName[100];
 		getIdAndPass(rivalNickName, playerName, inputMes);
 		string check = string(playerName);
-		if (check != user.nickname|| clientWindowStt!=1) {
-			inputMes[0] = CONNECT_TO_PLAY;
+		if (check != user.nickname ) {
+			inputMes[0] = WORNG_SYSTAX;
 			inputMes[1] = 0;
 			inputMes[2] = 0;
 			inputMes[3] = 0;
 			return;
 		};
+		if (clientWindowStt != 1) {
+			inputMes[0] = CONNECT_TO_PLAY;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		}
 		USER checkU = searchUserByNickname(string(rivalNickName));
 		if (abs(checkU.point-user.point)>10) {
 			inputMes[0] = RANK_DIF_ERROR;
@@ -106,6 +117,47 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 			strcpy(data_c, name.c_str());
 			makeItCombine(AGREE_TO_PLAY, data_c, strlen(data_c), inputMes);
 		}
+	}
+	else if ((inputMes[0] == char(LETS_PLAY))) {
+		int j, k = 0, check = 0;
+
+		char number[10];
+		int len = headerHandle(inputMes);
+		for (int i = 0;i < len;i++) {
+			number[i] = inputMes[i + 4];
+		}
+		number[len] = 0;
+		int num = atoi(number);
+		while (gameNum[num].inUse == 1) {
+			Sleep(20);
+		}
+		gameNum[num].inUse = 1;
+		for (int i = 0;i < 2;i++) {
+			if (gameNum[num].ready[i] == 0) {
+				k ++;
+			}
+		}
+		for (int i = 0;i < 2;i++) {
+			if (gameNum[num].player[i] == user.nickname) {
+				gameNum[num].ready[i] = 1;j = i;
+			}
+			else check++;
+		}
+		if (check == 2||k==2) {
+			inputMes[0] = WORNG_SYSTAX;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			gameNum[num].inUse = 0;
+			return;
+		}
+		printf("check point \n");
+		inputMes[1] = j;// because number of game alway <10000 <256^2 then we use the first byte to perform the number of user turn in game
+		inputMes[2] = (num / 256) % 256;
+		inputMes[3] = num % 256;
+		gameNum[num].inUse = 0;
+		return;
+		
 	}
 }
 void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,int &clientWindowStt,SOCKET &client) {
@@ -204,11 +256,8 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 	}
 	else if (inputMes[0] == char(CONNECT_TO_PLAY)) {
 		if (headerHandle(inputMes) == 0) {
-			outputMes1[0] = 0;
-			outputMes1[1] = 0;
-			outputMes1[2] = 0;
-			outputMes1[3] = 0;
-			lengthOutMes1 = 4;
+			makeItCombine(ERROR_MESSAGE, RIVAL_OFFLINE, 3, outputMes1);
+			lengthOutMes1 = 7;
 			return;
 		}
 		sendType = 2;
@@ -255,5 +304,46 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		char rivalNickName[100], playerName[100];
 		getIdAndPass(rivalNickName, playerName, inputMes);
 		rival = nickNameToSOCKET[rivalNickName];
+		boardNum++;
+		boardNum %= 10000;
+		int num = boardNum;
+		--num;
+		GAME newgame;
+		newgame.number = num;
+		newgame.ready[0] = 0;newgame.ready[1] = 0;
+		int ranN = rand() % 2;
+		newgame.player[ranN] = string(playerName);
+		ranN++;ranN %= 2;
+		newgame.player[ranN] = string(rivalNickName);
+		gameNum[num] = newgame;
+
+
+		char numChar[10];
+		_itoa_s(num, numChar, 10);
+		strcat(playerName, " ");strcat(rivalNickName, " ");
+		strcat(rivalNickName, numChar);strcat(playerName, numChar);
+		makeItCombine(START, rivalNickName, strlen(rivalNickName), outputMes2);
+		lengthOutMes2 = strlen(rivalNickName) + 4;
+		makeItCombine(START, playerName, strlen(playerName), outputMes1);
+		lengthOutMes1 = strlen(playerName) + 4;
+	}
+	else if (inputMes[0] == char(LETS_PLAY)) {
+		printf("check point 1\n");
+		sendType = 3;
+		int k;
+		k = inputMes[1];
+		if (k < 0) k += 256;
+		inputMes[1] = 0;
+		int num = headerHandle(inputMes);
+		rival = nickNameToSOCKET[gameNum[num].player[(k + 1) % 2]];
+		char rivalTurn[2], playerTurn[2],playerMes[150],rivalMes[150];
+		rivalTurn[1] = 0;rivalTurn[0] = ((k + 1) % 2) + '0';
+		playerTurn[1] = 0;playerTurn[0] = k + '0';
+		strcpy(playerMes, gameNum[num].player[(k + 1) % 2].c_str());strcat(playerMes, " ");strcat(playerMes, playerTurn);
+		strcpy(rivalMes, gameNum[num].player[k].c_str());strcat(rivalMes, " ");strcat(rivalMes, rivalTurn);
+		makeItCombine(LETS_PLAY, rivalMes, strlen(rivalMes), outputMes2);
+		lengthOutMes2 = strlen(rivalMes)+4;
+		makeItCombine(LETS_PLAY, playerMes, strlen(playerMes), outputMes1);
+		lengthOutMes1 = strlen(playerMes) + 4;
 	}
 }

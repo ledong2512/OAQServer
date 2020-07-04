@@ -1,4 +1,4 @@
-// GameServer.cpp : Defines the entry point for the console application.
+﻿// GameServer.cpp : Defines the entry point for the console application.
 //
 #include "stdafx.h"
 #include <winsock2.h>
@@ -25,6 +25,8 @@ using namespace std;
 map <string, SOCKET> nickNameToSOCKET;
 map <int, string> offerFightToNickname;
 int offerFightNumber;
+map <int, GAME> gameNum;
+int boardNum;
 // Structure definition
 typedef struct {
 	WSAOVERLAPPED overlapped;
@@ -50,6 +52,8 @@ typedef struct {
 unsigned __stdcall serverWorkerThread(LPVOID CompletionPortID);
 int _tmain(int argc, char* argv[])
 {
+	srand((int)time(0));
+	boardNum = 0;
 	offerFightNumber = 0;
 	SOCKADDR_IN serverAddr;
 	SOCKET listenSock, acceptSock;
@@ -196,7 +200,8 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 		
 		if (perHandleData->status == 1 && perIoData->operation == RECEIVE) {// recv-ed header
 			perHandleData->status = 0;// reset status;
-			for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+			//for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+			if (perIoData->dataBuff.buf[0] == char(52)) cout << "check point2" << endl;
 			printf("\n");
 			perHandleData->length = headerHandle(perIoData->buffer);
 			if (perHandleData->length == 0) {// message without payload
@@ -251,26 +256,12 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			perIoData->dataBuff.len = perHandleData->length1;
 			perIoData->operation = SEND;
 			cout << "Send: " << sendType << endl;
-			if (sendType % 2 == 1) {
-				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
-				printf("\n");
-				if (WSASend(perHandleData->socket,
-					&(perIoData->dataBuff),
-					1,
-					&transferredBytes,
-					0,
-					&(perIoData->overlapped),
-					NULL) == SOCKET_ERROR) {
-					if (WSAGetLastError() != ERROR_IO_PENDING) {
-						printf("WSASend() failed with error %d\n", WSAGetLastError());
-						return 0;
-					}
-				}
-			}
+			
 			if (sendType > 1&& sendType!=4){
 
 				cout << rival << endl;
-				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+				printf("á2\n");
+				for (int i = 0;i<4;i++)  printf("%d ", perHandleData->outputMes2[i]);
 				printf("\n");
 				if (rival == 0) {//the rival is offline
 					if (send(perHandleData->socket, perHandleData->outputMes1, perHandleData->length1, 0) == SOCKET_ERROR) {
@@ -302,6 +293,22 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 
 					}
 
+				}
+			}
+			if (sendType % 2 == 1) {
+				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
+				printf("\n");
+				if (WSASend(perHandleData->socket,
+					&(perIoData->dataBuff),
+					1,
+					&transferredBytes,
+					0,
+					&(perIoData->overlapped),
+					NULL) == SOCKET_ERROR) {
+					if (WSAGetLastError() != ERROR_IO_PENDING) {
+						printf("WSASend() failed with error %d\n", WSAGetLastError());
+						return 0;
+					}
 				}
 			}
 			if (sendType == 4) {

@@ -1,23 +1,37 @@
 ﻿  GameServer.cpp
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(69): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(136): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(141): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(148): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(177): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(178): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(202): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(203): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-GameServer.cpp(123): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
-  GameServer.cpp(123): note: consider using '%lld' in the format string
-  GameServer.cpp(123): note: consider using '%Id' in the format string
-  GameServer.cpp(123): note: consider using '%I64d' in the format string
-GameServer.cpp(169): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
-  GameServer.cpp(169): note: consider using '%lld' in the format string
-  GameServer.cpp(169): note: consider using '%Id' in the format string
-  GameServer.cpp(169): note: consider using '%I64d' in the format string
-GameServer.cpp(183): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
-  GameServer.cpp(183): note: consider using '%lld' in the format string
-  GameServer.cpp(183): note: consider using '%Id' in the format string
-  GameServer.cpp(183): note: consider using '%I64d' in the format string
+d:\it things\vs2015 pj\gameserver\gameserver\process_database.h(35): warning C4091: 'typedef ': ignored on left of 'GAME' when no variable is declared
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(73): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(80): warning C4309: '=': truncation of constant value
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(108): warning C4309: '=': truncation of constant value
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(118): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(147): warning C4309: '=': truncation of constant value
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(213): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(218): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(225): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(254): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(255): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(276): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(277): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(325): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(326): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(327): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(328): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(344): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(345): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(346): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+d:\it things\vs2015 pj\gameserver\gameserver\InOutHelper.h(347): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+GameServer.cpp(127): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
+  GameServer.cpp(127): note: consider using '%lld' in the format string
+  GameServer.cpp(127): note: consider using '%Id' in the format string
+  GameServer.cpp(127): note: consider using '%I64d' in the format string
+GameServer.cpp(263): warning C4566: character represented by universal-character-name '\u00E1' cannot be represented in the current code page (932)
+GameServer.cpp(173): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
+  GameServer.cpp(173): note: consider using '%lld' in the format string
+  GameServer.cpp(173): note: consider using '%Id' in the format string
+  GameServer.cpp(173): note: consider using '%I64d' in the format string
+GameServer.cpp(187): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'SOCKET'
+  GameServer.cpp(187): note: consider using '%lld' in the format string
+  GameServer.cpp(187): note: consider using '%Id' in the format string
+  GameServer.cpp(187): note: consider using '%I64d' in the format string
   GameServer.vcxproj -> D:\IT things\VS2015 PJ\GameServer\x64\Release\GameServer.exe
   GameServer.vcxproj -> D:\IT things\VS2015 PJ\GameServer\x64\Release\GameServer.pdb (Full PDB)

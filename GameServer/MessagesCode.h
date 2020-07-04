@@ -16,7 +16,11 @@
 #define CONNECT_TO_PLAY 51
 #define AGREE_TO_PLAY 52
 #define START 56
+#define LETS_PLAY 62
+#define CANNOT_PLAY	55
 #define RANK_DIF_ERROR 71
+
+#define PLAYER_MOVE 102	
 
 #define WORNG_INFOMATION "001"
 #define ALREADY_LOGGED_IN "002"
