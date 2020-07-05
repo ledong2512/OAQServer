@@ -315,6 +315,14 @@ int deleteAccount(int id) {
 	}
 	return 0;
 }
+void updateAfterGame(string winner, string loser)
+{
+	int winnerPoint, loserPoint,winId,loseId;
+	USER winU = searchUserByNickname(winner);
+	USER loseU = searchUserByNickname(loser);
+	updatePoint(winU.id, winU.point + 3);
+	updatePoint(loseU.id, loseU.point - 3);
+}
 void show(vector <USER> users) {
 	for (int i = 0; i < users.size(); i++) {
 		printf("id: %d, email: %s,  nickname: %s, point: %d\n",
@@ -322,6 +330,7 @@ void show(vector <USER> users) {
 
 	}
 }
+
 vector <user_s> getlistUsersLogin() {
 	return listLoginUser;
 }

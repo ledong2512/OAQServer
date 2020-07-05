@@ -154,6 +154,8 @@
     <ClInclude Include="check_format_regex.h" />
     <ClInclude Include="InOutHelper.h" />
     <ClInclude Include="MessagesCode.h" />
+    <ClInclude Include="OAnQuan.h" />
+    <ClInclude Include="processFile.h" />
     <ClInclude Include="process_database.h" />
     <ClInclude Include="sha256.h" />
     <ClInclude Include="stdafx.h" />
@@ -163,6 +165,8 @@
     <ClCompile Include="checksum.cpp" />
     <ClCompile Include="check_format_regex.cpp" />
     <ClCompile Include="GameServer.cpp" />
+    <ClCompile Include="OAnQuan.cpp" />
+    <ClCompile Include="processFile.cpp" />
     <ClCompile Include="process_database.cpp" />
     <ClCompile Include="sha256.cpp" />
     <ClCompile Include="stdafx.cpp">

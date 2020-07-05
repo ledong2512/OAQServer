@@ -42,6 +42,12 @@
     <ClInclude Include="MessagesCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="OAnQuan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="processFile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -60,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="process_database.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OAnQuan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="processFile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

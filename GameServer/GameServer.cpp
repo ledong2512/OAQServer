@@ -15,7 +15,7 @@
 #include"InOutHelper.h"
 #include"process_database.h"
 using namespace std;
-#define BUFF_SIZE 2048
+#define BUFF_SIZE 5120
 #define PORT 5500
 #define DATA_BUFSIZE 8192
 #define RECEIVE 0

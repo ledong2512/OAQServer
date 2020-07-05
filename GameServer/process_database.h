@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "sha256.h"
-
+#include"OAnQuan.h"
 typedef std::chrono::system_clock Clock;
 
 using namespace std;
@@ -31,6 +31,7 @@ typedef struct GAME {
 	int number;
 	string player[2];
 	boolean ready[2] = { false,false };
+	OAnQuan gameBoard; 
 	int inUse = 0;
 };
 MYSQL* connectionMysql();
@@ -48,6 +49,7 @@ int updatePoint(int id, int point);
 int updateNickname(int id, string nickname);
 int updatePass(string email, string nickname, string pass);
 int deleteAccount(int id);
+void updateAfterGame(string winner, string loser);
 void show(vector <USER> users);
 vector <user_s> getlistUsersLogin();
 vector <user_s> getlistUsersActive();

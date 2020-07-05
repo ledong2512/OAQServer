@@ -33,6 +33,39 @@ void getIdAndPass(char *id, char*pass,char* message) { //[IN] message, [OUT]id,p
 	}
 	for (int j = i;j <= messageLength;++j) pass[j - i] = message[j];
 }
+void getPlayerMoveInfo(char *message, int &gameNumB, int &turn, int &cell, int &dir) {
+	//[IN] message , out is the other stuff:gameNum is the number of game in the map, turn is the player turn, cell is thenumber of cell, dir is left or right 0-1
+	int i = 4,k;
+	int messageLength = headerHandle(message);
+	messageLength += 4;
+	char tmp[10];
+	for (i = 4;i < messageLength;i++) {
+		if (message[i] == ' ') {
+			tmp[i - 4] = 0;++i;break;
+		}
+		tmp[i - 4] = message[i];
+	}
+	gameNumB = atoi(tmp);
+	k = i;
+	for (i ;i < messageLength;i++) {
+		if (message[i] == ' ') {
+			tmp[i - k] = 0;++i;break;
+		}
+		tmp[i - k] = message[i];
+	}
+	turn = atoi(tmp);
+	k = i;
+	for (i;i < messageLength;i++) {
+		if (message[i] == ' ') {
+			tmp[i - k] = 0;++i;break;
+		}
+		tmp[i - k] = message[i];
+	}
+	cell = atoi(tmp);
+	for (int j = i;j <= messageLength;++j) tmp[j - i] = message[j];
+	dir = atoi(tmp);
+
+}
 void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 	/*this is preprocess function
 	[IN/OUT] inputMes: the inputdata to process,
@@ -158,6 +191,44 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 		gameNum[num].inUse = 0;
 		return;
 		
+	}
+	else if ((inputMes[0] == char(PLAYER_MOVE))) {
+		int gameN, turn, cell, dir;
+		getPlayerMoveInfo(inputMes, gameN, turn, cell, dir);
+		if (gameNum[gameN].player[turn] != user.nickname) {
+			inputMes[0] = WORNG_SYSTAX;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		}
+
+	}
+	else if ((inputMes[0] == char(SURRENDER))) {
+		char gameN[10], turnP[5];
+		getIdAndPass(gameN, turnP, inputMes);
+		int gameNN, turn;gameNN = atoi(gameN);turn = atoi(turnP);
+		if (gameNum[gameNN].player[turn] != user.nickname) {
+			inputMes[0] = WORNG_SYSTAX;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		}
+		gameNum[gameNN].gameBoard.surrender(turn);
+		updateAfterGame(gameNum[gameNN].player[(turn+1)%2], gameNum[gameNN].player[turn]);
+	}
+	else if ((inputMes[0] == char(GET_LOG))) {
+		char gameN[10], turnP[5];
+		getIdAndPass(gameN, turnP, inputMes);
+		int gameNN, turn;gameNN = atoi(gameN);turn = atoi(turnP);
+		if (gameNum[gameNN].player[turn] != user.nickname) {
+			inputMes[0] = WORNG_SYSTAX;
+			inputMes[1] = 0;
+			inputMes[2] = 0;
+			inputMes[3] = 0;
+			return;
+		}
 	}
 }
 void updateClientStatus(int returnMess,char *inputMes, int &length,USER &user ,int &clientWindowStt,SOCKET &client) {
@@ -309,6 +380,7 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		int num = boardNum;
 		--num;
 		GAME newgame;
+		newgame.gameBoard.setName(to_string(num));
 		newgame.number = num;
 		newgame.ready[0] = 0;newgame.ready[1] = 0;
 		int ranN = rand() % 2;
@@ -335,15 +407,83 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		if (k < 0) k += 256;
 		inputMes[1] = 0;
 		int num = headerHandle(inputMes);
+		char numChar[10];
+		_itoa_s(num, numChar, 10);
 		rival = nickNameToSOCKET[gameNum[num].player[(k + 1) % 2]];
 		char rivalTurn[2], playerTurn[2],playerMes[150],rivalMes[150];
 		rivalTurn[1] = 0;rivalTurn[0] = ((k + 1) % 2) + '0';
 		playerTurn[1] = 0;playerTurn[0] = k + '0';
 		strcpy(playerMes, gameNum[num].player[(k + 1) % 2].c_str());strcat(playerMes, " ");strcat(playerMes, playerTurn);
+		strcat(playerMes, " ");strcat(playerMes, numChar);
 		strcpy(rivalMes, gameNum[num].player[k].c_str());strcat(rivalMes, " ");strcat(rivalMes, rivalTurn);
+		strcat(rivalMes, " ");strcat(rivalMes, numChar);
 		makeItCombine(LETS_PLAY, rivalMes, strlen(rivalMes), outputMes2);
 		lengthOutMes2 = strlen(rivalMes)+4;
 		makeItCombine(LETS_PLAY, playerMes, strlen(playerMes), outputMes1);
 		lengthOutMes1 = strlen(playerMes) + 4;
+	}
+	else if (inputMes[0] == char(PLAYER_MOVE)) {
+		int check = 0;
+		sendType = 2;
+		int gameN, turn, cell, dir;
+		getPlayerMoveInfo(inputMes, gameN, turn, cell, dir);
+		gameNum[gameN].gameBoard.moveRock(cell, dir);
+		if (gameNum[gameN].gameBoard.isEndGame() != 0) {
+			check = 1;
+			if (gameNum[gameN].gameBoard.playerWin == 0) {
+				updateAfterGame(gameNum[gameN].player[0], gameNum[gameN].player[1]);
+			}
+			else if (gameNum[gameN].gameBoard.playerWin == 1) {
+				updateAfterGame(gameNum[gameN].player[1], gameNum[gameN].player[0]);
+			}
+			else;
+		}
+		rival = nickNameToSOCKET[gameNum[gameN].player[(turn + 1) % 2]];
+		char data_c[50];
+		int length = headerHandle(inputMes);
+		memcpy(data_c, inputMes + 4, length);
+		data_c[length] = 0;
+		if (check == 1) {
+			sendType = 3;
+			strcat(data_c, " endgame");
+			outputMes1[0] = char(END_GAME);
+			outputMes1[1] = 0;
+			outputMes1[2] = 0;
+			outputMes1[3] = 0;
+			lengthOutMes1 = 4;
+		}
+		makeItCombine(PLAYER_MOVE, data_c, length, outputMes2);
+		lengthOutMes2 = length + 4;
+	}
+	else if (inputMes[0] == char(SURRENDER)) {
+		sendType = 3;
+		char gameN[10], turnP[5];
+		getIdAndPass(gameN, turnP, inputMes);
+		int gameNN, turn;gameNN = atoi(gameN);turn = atoi(turnP);
+		rival = nickNameToSOCKET[gameNum[gameNN].player[(turn + 1) % 2]];
+		outputMes1[0] = char(END_GAME);
+		outputMes1[1] = 0;
+		outputMes1[2] = 0;
+		outputMes1[3] = 0;
+		lengthOutMes1 = 4;
+		outputMes2[0] = char(END_GAME);
+		outputMes2[1] = 0;
+		outputMes2[2] = 0;
+		outputMes2[3] = 0;
+		lengthOutMes2 = 4;
+	}
+	else if (inputMes[0] == char(GET_LOG)) {
+		char gameN[10], turnP[5];
+		getIdAndPass(gameN, turnP, inputMes);
+		int gameNN, turn;gameNN = atoi(gameN);turn = atoi(turnP);
+		string buff;
+		if(turn==1) Sleep(500);
+		readFile(gameN, buff);
+
+		char log[5120];
+		strcpy(log, buff.c_str());
+		int len = strlen(log);
+		makeItCombine(SEND_LOG, log, len, outputMes1);
+		lengthOutMes1 = 4 + len;
 	}
 }
