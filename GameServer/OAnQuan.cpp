@@ -12,7 +12,7 @@ OAnQuan::OAnQuan(string name)
 		else board[i] = 5;
 	}
 	//random first turn;
-	nowTurn = random(0, 1);
+	nowTurn = 0;
 	numTurn = 0;
 	score[0] = 0; score[1] = 0;
 }
@@ -22,7 +22,7 @@ OAnQuan::OAnQuan() {
 		else board[i] = 5;
 	}
 	//random first turn;
-	nowTurn = random(0, 1);
+	nowTurn = 0;
 	numTurn = 0;
 	score[0] = 0; score[1] = 0;
 
@@ -61,10 +61,7 @@ int OAnQuan::isEndGame()
 			playerWin = 1;
 		}
 		else playerWin = 2;
-		if (playerWin != 2) {
-			string dataWin = "W:" + to_string(playerWin) + "";
-			writeFile(filename, dataWin);
-		}
+		
 		return 1;
 
 	}
@@ -82,6 +79,10 @@ void OAnQuan::setName(string name)
 
 void OAnQuan::surrender(int loser)
 {
+	if (isEndGame()) return;
+	suran = 1;
+	board[0] == 0; board[6] == 0;
+	score[(loser + 1) % 2] = 999; score[loser] = 0;
 	playerWin = (loser + 1) % 2;
 	string dataWin = "W:" + to_string(playerWin) + "";
 	writeFile(filename, dataWin);
@@ -147,9 +148,10 @@ void OAnQuan::moveRock(int position, bool isRight)
 		board[11] = 1;
 		score[1] -= 5;
 	}
-	data += "#" + to_string(nowTurn) + ":" + to_string(position) + ":" + to_string(isRight) + "+";
-	writeFile(filename, data);
+	
 	if (checkMove(position, isRight)) {
+		data += "#" + to_string(nowTurn) + ":" + to_string(position) + ":" + to_string(isRight) + "+";
+		writeFile(filename, data);
 		if (isRight) {
 			int lastPos;
 			if (nowTurn == 0)

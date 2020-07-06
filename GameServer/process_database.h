@@ -33,6 +33,11 @@ typedef struct GAME {
 	boolean ready[2] = { false,false };
 	OAnQuan gameBoard; 
 	int inUse = 0;
+	int gameStart = 0;
+	time_t lastMove[2];
+	string ip[2];
+	boolean readyToDel[2] = { false,false };
+	time_t acceptTime;
 };
 MYSQL* connectionMysql();
 vector <USER> getAllAccount();
@@ -51,5 +56,6 @@ int updatePass(string email, string nickname, string pass);
 int deleteAccount(int id);
 void updateAfterGame(string winner, string loser);
 void show(vector <USER> users);
+void updateActive(string name, int code);
 vector <user_s> getlistUsersLogin();
 vector <user_s> getlistUsersActive();

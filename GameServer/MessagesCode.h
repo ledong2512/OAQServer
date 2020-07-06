@@ -7,8 +7,8 @@
 #define LOGIN_FAIL 3
 #define LOGOUT_MESSAGE 5
 #define LOGOUT_SUCCESS 6
-
-
+#define REGIST 7
+#define REGIST_SUCCESS 8
 
 #define CHAT 70
 #define GET_LIST_PLAYER 60
@@ -25,9 +25,17 @@
 #define GET_LOG 104
 #define SURRENDER 105
 #define SEND_LOG 106
+#define GET_IP 107
+#define SEND_IP 108
+#define RETURN 109
 
 #define WORNG_INFOMATION "001"
 #define ALREADY_LOGGED_IN "002"
+#define ID_DUP "003"
+#define NICKNAME_DUP "004"
+#define SQL_ERR "005"
+
 #define MESSAGE_NOT_YET "190"
 #define RIVAL_OFFLINE "191"
 #define DIFF_RANK "192"
+#define START_ERROR "193"

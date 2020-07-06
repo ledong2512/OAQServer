@@ -77,16 +77,18 @@ USER searchUserByNickname(string nickname) {
 		if (!mysql_query(conn, q)) {
 			res = mysql_store_result(conn);
 			row = mysql_fetch_row(res);
-			if (row[0] != NULL)
-				user.id = atoi(row[0]);
-			if (row[1] != NULL)
-				user.email = row[1];
-			if (row[2] != NULL)
-				user.password = row[2];
-			if (row[3] != NULL)
-				user.nickname = row[3];
-			if (row[4] != NULL)
-				user.point = atoi(row[4]);
+			if (row) {
+				if (row[0] != NULL)
+					user.id = atoi(row[0]);
+				if (row[1] != NULL)
+					user.email = row[1];
+				if (row[2] != NULL)
+					user.password = row[2];
+				if (row[3] != NULL)
+					user.nickname = row[3];
+				if (row[4] != NULL)
+					user.point = atoi(row[4]);
+			}
 		}
 		mysql_close(conn);
 	}
@@ -212,7 +214,9 @@ int regist(string email, string pass) {
 }
 int regist(string email, string pass, string nickname) {
 	USER u = searchUserByEmail(email);
-	if (u.id >= 0) return 0;
+	if (u.id >= 0) return -1;
+	 u = searchUserByNickname(nickname);
+	if (u.id >= 0) return -2;
 	MYSQL * conn = connectionMysql();
 	if (conn) {
 		string query = "INSERT INTO account(email,password,nickname) VALUES ('" + email + "','" + sha256(pass) + "','" + nickname + "');";
@@ -328,6 +332,21 @@ void show(vector <USER> users) {
 		printf("id: %d, email: %s,  nickname: %s, point: %d\n",
 			users.at(i).id, users.at(i).email, users.at(i).nickname, users.at(i).point);
 
+	}
+}
+
+void updateActive(string name,int code)
+{
+	USER user = searchUserByNickname(name);
+	if (code == 1) {
+		listActiveUser.push_back(user);
+	}
+	else {
+		for (int i = 0; i < listActiveUser.size(); i++) {
+			if (name == listActiveUser.at(i).nickname) {
+				listActiveUser.erase(listActiveUser.begin() + i);
+			}
+		}
 	}
 }
 

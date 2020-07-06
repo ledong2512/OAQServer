@@ -26,6 +26,8 @@ map <string, SOCKET> nickNameToSOCKET;
 map <int, string> offerFightToNickname;
 int offerFightNumber;
 map <int, GAME> gameNum;
+map <int, int> SOCKETtoGame;
+map <int, string> SOCKETtoIp;
 int boardNum;
 // Structure definition
 typedef struct {
@@ -48,7 +50,8 @@ typedef struct {
 	USER client;
 	int clientWindowStt = 0;//0 is not login yet, 1 is loged in, 2 is in the game
 } PER_HANDLE_DATA, *LPPER_HANDLE_DATA;
-
+unsigned __stdcall autoMoveThread(LPVOID variable);
+unsigned __stdcall cleanThread(LPVOID variable);
 unsigned __stdcall serverWorkerThread(LPVOID CompletionPortID);
 int _tmain(int argc, char* argv[])
 {
@@ -81,7 +84,7 @@ int _tmain(int argc, char* argv[])
 
 	// Step 3: Create worker threads based on the number of processors available on the
 	// system. Create two worker threads for each processor	
-	for (int i = 0; i < (int)systemInfo.dwNumberOfProcessors * 2; i++) {
+	for (int i = 0; i < (int)systemInfo.dwNumberOfProcessors * 2-1; i++) {
 		// Create a server worker thread and pass the completion port to the thread
 		if (_beginthreadex(0, 0, serverWorkerThread, (void*)completionPort, 0, 0) == 0) {
 			printf("Create thread failed with error %d\n", GetLastError());
@@ -108,6 +111,7 @@ int _tmain(int argc, char* argv[])
 		printf("listen() failed with error %d\n", WSAGetLastError());
 		return 1;
 	}
+	_beginthreadex(0, 0, autoMoveThread, NULL, 0, 0);
 	while (1) {
 		// Step 5: Accept connections
 		SOCKADDR_IN clientA;
@@ -126,6 +130,13 @@ int _tmain(int argc, char* argv[])
 		// Step 7: Associate the accepted socket with the original completion port
 		printf("Socket number %d got connected...\n", acceptSock);
 		perHandleData->socket = acceptSock;
+		char sendId[2048] = "";
+		char sendPort[50];
+		strcat_s(sendId, inet_ntoa(clientA.sin_addr));
+		strcat_s(sendId, ":");
+		_itoa_s(ntohs(clientA.sin_port), sendPort, 10);
+		strcat_s(sendId, sendPort);
+		int acINT = acceptSock;SOCKETtoIp[acINT] = string(sendId);
 		memcpy(&perHandleData->clientAddr, &clientA, clientAddrLen);
 		perHandleData->status = 1;// header is recv-ed
 		if (CreateIoCompletionPort((HANDLE)acceptSock, completionPort, (ULONG_PTR)perHandleData, 0) == NULL) {
@@ -172,6 +183,28 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			(PULONG_PTR)&perHandleData, (LPOVERLAPPED *)&perIoData, INFINITE) == 0) {
 			printf("Socket number %d got close...\n", perHandleData->socket);
 			//logout
+			
+			int sock = perHandleData->socket;
+			if (SOCKETtoGame.find(sock) != SOCKETtoGame.end()) {// we can tell the program that this player is surender
+				int gameNN = SOCKETtoGame[sock];
+				int turn=-1;
+				if (nickNameToSOCKET[gameNum[gameNN].player[0]]== perHandleData->socket) turn = 0;
+				if (nickNameToSOCKET[gameNum[gameNN].player[1]] == perHandleData->socket) turn = 1;
+				if (turn == 0 || turn == 1) {
+					gameNum[gameNN].gameStart = -1;
+					gameNum[gameNN].gameBoard.surrender(turn);
+					updateAfterGame(gameNum[gameNN].player[(turn + 1) % 2], gameNum[gameNN].player[turn]);
+					char endMes[5];
+					endMes[0] = char(END_GAME);
+					endMes[1] = 0;
+					endMes[2] = 0;
+					endMes[3] = 0;
+					send(nickNameToSOCKET[gameNum[gameNN].player[(turn + 1) % 2]], endMes, 4, 0);
+					gameNum[gameNN].readyToDel[turn] = true;
+				}
+				SOCKETtoGame.erase(sock);
+			}
+			SOCKETtoIp.erase(sock);
 			logout(perHandleData->client.id);
 			printf("GetQueuedCompletionStatus() failed with error %d\n", GetLastError());
 			return 0;
@@ -364,6 +397,99 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 
 			}
 
+		}
+	}
+}
+unsigned __stdcall autoMoveThread(LPVOID variable)
+{
+	map <int, GAME>::iterator it;
+	while (1) {
+		for (it = gameNum.begin();it != gameNum.end();++it) {
+			if (it->second.gameStart == 1) {
+				auto now = Clock::now();
+				int turn = it->second.gameBoard.nowTurn;
+				auto sec = now- std::chrono::system_clock::from_time_t(it->second.lastMove[turn]);
+				if (std::chrono::duration_cast<std::chrono::seconds>(sec).count() > 130) {
+					int cell, dir = 0;
+					int check = 0;
+					for (int i = turn * 6 + 1;i <= turn * 6 + 5;i++) {
+						if (it->second.gameBoard.board[i] != 0) {
+							cell = i;break;
+						}
+					}
+					if (cell == 0) cell = turn * 6 + 1;
+						auto now = Clock::now();
+						it->second.lastMove[(turn + 1) % 2] = Clock::to_time_t(now);
+						it->second.gameBoard.moveRock(cell, dir);
+						if (it->second.gameBoard.isEndGame() != 0) {
+							if(it->second.gameBoard.suran==1){
+								check = 2;
+							}
+							else {
+								check = 1;
+								if (it->second.gameBoard.playerWin == 0) {
+									updateAfterGame(it->second.player[0], it->second.player[1]);
+								}
+								else if (it->second.gameBoard.playerWin == 1) {
+									updateAfterGame(it->second.player[1], it->second.player[0]);
+								}
+								else;
+								it->second.gameStart = -1;
+								it->second.gameBoard.writeWin();
+							}
+						}
+						char moveMes[50], sendBuff[100];
+						char tmp[10];
+						_itoa_s(it->first, moveMes, 10);
+						strcat(moveMes, " ");
+						_itoa_s(turn, tmp, 10);
+						strcat(moveMes, tmp);strcat(moveMes, " ");
+						_itoa_s(cell, tmp, 10);
+						strcat(moveMes, tmp);strcat(moveMes, " ");
+						_itoa_s(dir, tmp, 10);
+						strcat(moveMes, tmp);
+						int len = strlen(moveMes);
+						makeItCombine(PLAYER_MOVE, moveMes, len, sendBuff);
+						if (check != 2) {
+							send(nickNameToSOCKET[it->second.player[0]], sendBuff, len + 4, 0);
+							send(nickNameToSOCKET[it->second.player[1]], sendBuff, len + 4, 0);
+						}
+						if (check == 1) {
+							char endMes[5];
+							endMes[0] = char(END_GAME);
+							endMes[1] = 0;
+							endMes[2] = 0;
+							endMes[3] = 0;
+							send(nickNameToSOCKET[it->second.player[0]], endMes,  4, 0);
+							send(nickNameToSOCKET[it->second.player[1]], endMes,  4, 0);
+						}
+					}
+				}
+			}
+		}
+	}
+unsigned __stdcall cleanThread(LPVOID variable) {
+	map <int, GAME>::iterator it;
+	while (1) {
+		for (it = gameNum.begin();it != gameNum.end();++it) {
+			if (it->second.gameStart == 0) {
+				auto now = Clock::now();
+				int start = it->second.acceptTime;
+				auto sec = now - std::chrono::system_clock::from_time_t(start);
+				if (std::chrono::duration_cast<std::chrono::seconds>(sec).count() > 10) {
+					char errMess[10];
+					makeItCombine(ERROR_MESSAGE, START_ERROR, 3, errMess);
+					send(nickNameToSOCKET[it->second.player[0]], errMess, 7, 0);
+					send(nickNameToSOCKET[it->second.player[1]], errMess, 7, 0);
+				}
+			}
+			else if (it->second.gameStart == -1) {
+				if (it->second.readyToDel[0] == true && it->second.readyToDel[1] == true) {
+					deleteFile(to_string(it->first).c_str());
+					int x = it->first;
+					gameNum.erase(x);
+				}
+			}
 		}
 	}
 }

@@ -37,13 +37,14 @@ int deleteFile(const char* file_path)
 	return ret = (ret == 0) ? 1 : 0;
 }
 int readFile(char *fileName,string &line) {
-	errno_t err;
-	FILE *pFile;
-	err = fopen_s(&pFile, fileName, "r+");
-	while (!feof(pFile)) {
-		
-		fscanf_s(pFile, "%s", &line);
-	}
-	fclose(pFile);
+	std::ifstream t(fileName);
+	std::string str;
+
+	t.seekg(0, std::ios::end);
+	str.reserve(t.tellg());
+	t.seekg(0, std::ios::beg);
+
+	line.assign((std::istreambuf_iterator<char>(t)),
+		std::istreambuf_iterator<char>());
 	return 0;
 }
