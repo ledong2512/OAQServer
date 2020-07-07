@@ -21,24 +21,52 @@ public:
 	int playerWin = 0; //1 or 2
 	int random(int minN, int maxN);//random in paragraph
 	int randomPositon();// random move
-	void changeTurn();
-	int isEndGame();
+	/*
+	Function: Check the game end conditions
+	*/
+	void changeTurn(); //change turn among 2 player 0 and player 1
+	/*
+	Function: Check the game end conditions
+	Return: 1 is end game
+			0 is not end game
+	*/
+	int isEndGame(); 
+	/*
+	Function: set Name of file name
+	Param: [IN] name:  to set
+	*/
 	void setName(string name);
+	/*
+	Function: When 1 player want to surrender
+	Param: loser: id of player loser
+	*/
 	void surrender(int loser);
+	/*
+	Function: Cursor to each cell of the board
+	*/
 	void nextCursor(int& currentCursor, int& currentLastpos);
+	/*
+	Function: is the migration test valid
+	Param: postion: [IN]position to select a piece
+		   direction: [IN] direction want to move (left or right : 0,1)
+	*/
 	int checkMove(int position, int direction);
+	/*
+	Function: Move in the game
+	Param: postion: [IN]position to select a piece
+	isRight: [IN] direction want to move 
+	*/
 	void moveRock(int position, bool isRight);
+	/*
+	Function: write winner  to the file 
+	*/
 	void writeWin() {
 		if (playerWin != 2) {
 			string dataWin = "W:" + to_string(playerWin+1) + "";
 			writeFile(filename, dataWin);
 		}
 	}
-	/*
-	move rock
-	input: param position is position in board
-			isRight is direction( left or right)
-*/
+
 
 
 	void show() {

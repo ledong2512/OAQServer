@@ -4,6 +4,9 @@
 #include<regex>
 #include<stdio.h>
 using namespace std;
+/*
+Function: check string in form peartalent@gmail.com
+*/
 int checkFormatEmail(std::string email)
 {
 	const regex pattern("(\\w+)(\\.|_)?(\\w*)@(\\w+)(\\.(\\w+))+");

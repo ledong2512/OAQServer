@@ -33,7 +33,7 @@ void writeFile(char* fileName, string data)
 }
 int deleteFile(const char* file_path)
 {
-	int ret = remove(file_path);
+	int ret = remove(file_path); //delete file
 	return ret = (ret == 0) ? 1 : 0;
 }
 int readFile(char *fileName,string &line) {

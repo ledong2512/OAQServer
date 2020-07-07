@@ -199,7 +199,7 @@ int regist(string email, string pass) {
 	MYSQL * conn = connectionMysql();
 	if (conn) {
 		string query = "INSERT INTO account(email,password,nickname) VALUES ('" + email + "','" + sha256(pass) + "','" + email + "');";
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;
@@ -221,7 +221,7 @@ int regist(string email, string pass, string nickname) {
 	if (conn) {
 		string query = "INSERT INTO account(email,password,nickname) VALUES ('" + email + "','" + sha256(pass) + "','" + nickname + "');";
 
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;
@@ -247,14 +247,14 @@ int logout(int id) {
 				return 1;
 			}
 		}
-		return 0; //khong tim thay id
+		return 0; 
 	
 }
 int updatePoint(int id, int point) {
 	MYSQL * conn = connectionMysql();
 	if (conn) {
 		string query = "UPDATE `account` SET `point` = " + to_string(point) + " WHERE `id` = " + to_string(id) + ";";
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;
@@ -270,7 +270,7 @@ int updateNickname(int id, string nickname) {
 	MYSQL * conn = connectionMysql();
 	if (conn) {
 		string query = "UPDATE `account` SET `nickname` = '" + nickname + "' WHERE `id` = " + to_string(id) + ";";
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;
@@ -288,7 +288,7 @@ int updatePass(string email, string nickname, string pass) {
 	if (conn) {
 		string query = "UPDATE `account` SET `password` = '" + sha256(pass) + "' WHERE `email` = '" + email + "' and nickname = '" + nickname + "';";
 
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());// quêry
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;
@@ -306,7 +306,7 @@ int deleteAccount(int id) {
 	if (conn) {
 		string query = "DELETE FROM `o_an_quan`.`account` WHERE `id` = " + to_string(id);
 
-		int query_state = mysql_query(conn, query.c_str());// thuc hien truy van
+		int query_state = mysql_query(conn, query.c_str());// query
 		if (query_state == 0) {
 			mysql_close(conn);
 			return 1;

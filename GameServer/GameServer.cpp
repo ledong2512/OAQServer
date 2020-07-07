@@ -84,7 +84,7 @@ int _tmain(int argc, char* argv[])
 
 	// Step 3: Create worker threads based on the number of processors available on the
 	// system. Create two worker threads for each processor	
-	for (int i = 0; i < (int)systemInfo.dwNumberOfProcessors * 2-1; i++) {
+	for (int i = 0; i < (int)systemInfo.dwNumberOfProcessors * 2-2; i++) {
 		// Create a server worker thread and pass the completion port to the thread
 		if (_beginthreadex(0, 0, serverWorkerThread, (void*)completionPort, 0, 0) == 0) {
 			printf("Create thread failed with error %d\n", GetLastError());
@@ -183,7 +183,7 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 		if (GetQueuedCompletionStatus(completionPort, &transferredBytes,
 			(PULONG_PTR)&perHandleData, (LPOVERLAPPED *)&perIoData, INFINITE) == 0) {
 			printf("Socket number %d got close...\n", perHandleData->socket);
-			//logout
+			
 			
 			int sock = perHandleData->socket;
 			if (SOCKETtoGame.find(sock) != SOCKETtoGame.end()) {// we can tell the program that this player is surender
@@ -206,9 +206,9 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 				SOCKETtoGame.erase(sock);
 			}
 			SOCKETtoIp.erase(sock);
-			logout(perHandleData->client.id);
+			logout(perHandleData->client.id);//logout
 			printf("GetQueuedCompletionStatus() failed with error %d\n", GetLastError());
-			return 0;
+			continue;
 		}
 		// Check to see if an error has occurred on the socket and if so
 		// then close the socket and cleanup the SOCKET_INFORMATION structure
@@ -221,7 +221,7 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			printf("Closing socket %d\n", perHandleData->socket);
 			if (closesocket(perHandleData->socket) == SOCKET_ERROR) {
 				printf("closesocket() failed with error %d\n", WSAGetLastError());
-				return 0;
+				continue;
 			}
 			GlobalFree(perHandleData);
 			GlobalFree(perIoData);
@@ -234,9 +234,6 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 		
 		if (perHandleData->status == 1 && perIoData->operation == RECEIVE) {// recv-ed header
 			perHandleData->status = 0;// reset status;
-			//for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
-			if (perIoData->dataBuff.buf[0] == char(52)) cout << "check point2" << endl;
-			printf("\n");
 			perHandleData->length = headerHandle(perIoData->buffer);
 			if (perHandleData->length == 0) {// message without payload
 				perHandleData->status = 1;// reset status;
@@ -289,14 +286,8 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 			perIoData->dataBuff.buf = perHandleData->outputMes1;
 			perIoData->dataBuff.len = perHandleData->length1;
 			perIoData->operation = SEND;
-			cout << "Send: " << sendType << endl;
 			
 			if (sendType > 1&& sendType!=4){
-
-				cout << rival << endl;
-				printf("á2\n");
-				for (int i = 0;i<4;i++)  printf("%d ", perHandleData->outputMes2[i]);
-				printf("\n");
 				if (rival == 0) {//the rival is offline
 					if (send(perHandleData->socket, perHandleData->outputMes1, perHandleData->length1, 0) == SOCKET_ERROR) {
 						printf("send() failed with error %d\n", WSAGetLastError());
@@ -320,7 +311,7 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 						&(perIoData->overlapped), NULL) == SOCKET_ERROR) {
 						if (WSAGetLastError() != ERROR_IO_PENDING) {
 							printf("WSARecv() failed with error %d\n", WSAGetLastError());
-							return 0;
+							continue;
 						}
 
 
@@ -330,8 +321,6 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 				}
 			}
 			if (sendType % 2 == 1) {
-				for (int i = 0;i<4;i++)  printf("%d ", perIoData->dataBuff.buf[i]);
-				printf("\n");
 				if (WSASend(perHandleData->socket,
 					&(perIoData->dataBuff),
 					1,
@@ -341,7 +330,10 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 					NULL) == SOCKET_ERROR) {
 					if (WSAGetLastError() != ERROR_IO_PENDING) {
 						printf("WSASend() failed with error %d\n", WSAGetLastError());
-						return 0;
+						if (perIoData->dataBuff.buf[0] == char(LOGIN_SUCCESS)) {
+							logout(perHandleData->client.id);//logout
+						}
+						continue;
 					}
 				}
 			}
@@ -366,7 +358,7 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 					&(perIoData->overlapped), NULL) == SOCKET_ERROR) {
 					if (WSAGetLastError() != ERROR_IO_PENDING) {
 						printf("WSARecv() failed with error %d\n", WSAGetLastError());
-						return 0;
+						continue;
 					}
 				}
 			}
@@ -391,7 +383,7 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 				&(perIoData->overlapped), NULL) == SOCKET_ERROR) {
 				if (WSAGetLastError() != ERROR_IO_PENDING) {
 					printf("WSARecv() failed with error %d\n", WSAGetLastError());
-					return 0;
+					continue;
 				}
 
 
@@ -401,11 +393,13 @@ unsigned __stdcall serverWorkerThread(LPVOID completionPortID)
 		}
 	}
 }
-unsigned __stdcall autoMoveThread(LPVOID variable)
+unsigned __stdcall autoMoveThread(LPVOID variable) // thread to auto move
 {
 	map <int, GAME>::iterator it;
 	while (1) {
+		if (gameNum.empty()) continue;
 		for (it = gameNum.begin();it != gameNum.end();++it) {
+			if (it == gameNum.end()) break;
 			if (it->second.gameStart == 1) {
 				auto now = Clock::now();
 				int turn = it->second.gameBoard.nowTurn;
@@ -469,9 +463,10 @@ unsigned __stdcall autoMoveThread(LPVOID variable)
 			}
 		}
 	}
-unsigned __stdcall cleanThread(LPVOID variable) {
+unsigned __stdcall cleanThread(LPVOID variable) {//thread to clen up
 	map <int, GAME>::iterator it;
 	while (1) {
+		if (gameNum.empty()) continue;
 		for (it = gameNum.begin();it != gameNum.end();++it) {
 			if (it->second.gameStart == 0) {
 				auto now = Clock::now();

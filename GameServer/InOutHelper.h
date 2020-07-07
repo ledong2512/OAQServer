@@ -220,7 +220,6 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 			gameNum[num].inUse = 0;
 			return;
 		}
-		printf("check point \n");
 		inputMes[1] = j;// because number of game alway <10000 <256^2 then we use the first byte to perform the number of user turn in game
 		inputMes[2] = (num / 256) % 256;
 		inputMes[3] = num % 256;
@@ -282,7 +281,6 @@ void preProcess(char *inputMes, USER &user, int &clientWindowStt) {
 	else if ((inputMes[0] == char(RETURN))) {
 
 		string name = user.nickname;
-		cout << name;
 		user.point = searchUserByNickname(name).point;
 		char nickNameAndRank[100];
 		string tmp = (user.nickname + " " + to_string(user.point));
@@ -371,7 +369,6 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		int id = headerHandle(inputMes);
 		vector <USER> listActiveUser = getlistUsersActive();
 		string data;
-		show(listActiveUser);
 		for (int i = 0; i < listActiveUser.size(); i++) {
 			if (id != listActiveUser.at(i).id) {
 				data += listActiveUser.at(i).nickname;
@@ -488,7 +485,6 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		int rivalInt = rival;
 		gameNum[num].ip[k] = SOCKETtoIp[playerInt];
 		gameNum[num].ip[(k + 1) % 2] = SOCKETtoIp[rivalInt];
-		cout << playerInt << " " << rivalInt;
 		updateActive(gameNum[num].player[k], -1);
 		updateActive(gameNum[num].player[(k+1)%2], -1);
 		SOCKETtoGame[playerInt] = num;
@@ -506,7 +502,6 @@ void revMessage(char *inputMes, char *outputMes1, int &lengthOutMes1, char *outp
 		auto now = Clock::now();
 		gameNum[gameN].lastMove[(turn + 1) % 2] = Clock::to_time_t(now);
 		gameNum[gameN].gameBoard.moveRock(cell, dir);
-		gameNum[gameN].gameBoard.show();
 		if (gameNum[gameN].gameBoard.isEndGame() != 0) {
 			check = 1;
 			if (gameNum[gameN].gameBoard.playerWin == 0) {
