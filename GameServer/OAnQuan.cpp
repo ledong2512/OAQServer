@@ -84,7 +84,7 @@ void OAnQuan::surrender(int loser)
 	board[0] == 0; board[6] == 0;
 	score[(loser + 1) % 2] = 999; score[loser] = 0;
 	playerWin = (loser + 1) % 2;
-	string dataWin = "W:" + to_string(playerWin) + "";
+	string dataWin = "W:" + to_string(playerWin+1) + "";
 	writeFile(filename, dataWin);
 }
 

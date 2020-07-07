@@ -30,7 +30,7 @@ public:
 	void moveRock(int position, bool isRight);
 	void writeWin() {
 		if (playerWin != 2) {
-			string dataWin = "W:" + to_string(playerWin) + "";
+			string dataWin = "W:" + to_string(playerWin+1) + "";
 			writeFile(filename, dataWin);
 		}
 	}

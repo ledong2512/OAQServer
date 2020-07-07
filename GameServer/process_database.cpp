@@ -324,6 +324,7 @@ void updateAfterGame(string winner, string loser)
 	int winnerPoint, loserPoint,winId,loseId;
 	USER winU = searchUserByNickname(winner);
 	USER loseU = searchUserByNickname(loser);
+	if (loseU.point - 3 < 0)loseU.point = 3;
 	updatePoint(winU.id, winU.point + 3);
 	updatePoint(loseU.id, loseU.point - 3);
 }

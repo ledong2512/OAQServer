@@ -112,6 +112,7 @@ int _tmain(int argc, char* argv[])
 		return 1;
 	}
 	_beginthreadex(0, 0, autoMoveThread, NULL, 0, 0);
+	_beginthreadex(0, 0, cleanThread, NULL, 0, 0);
 	while (1) {
 		// Step 5: Accept connections
 		SOCKADDR_IN clientA;
@@ -481,6 +482,8 @@ unsigned __stdcall cleanThread(LPVOID variable) {
 					makeItCombine(ERROR_MESSAGE, START_ERROR, 3, errMess);
 					send(nickNameToSOCKET[it->second.player[0]], errMess, 7, 0);
 					send(nickNameToSOCKET[it->second.player[1]], errMess, 7, 0);
+					int x = it->first;
+					gameNum.erase(x);
 				}
 			}
 			else if (it->second.gameStart == -1) {
