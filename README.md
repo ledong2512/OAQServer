@@ -5,8 +5,8 @@
   - MySQL
 - **Triển khai server:**
   - Server được chạy tại cổng 5500 localhost
-  - Tạp bảng o_an_quan trong MySQL 
-  | Tên trường | Dữ liệu |
+  - Tạp bảng o_an_quan trong MySQL <br/>
+| Tên trường | Dữ liệu |
 |--------------|-------|
 | id | int (PK,AI) | 
 | email | varchar(255) |
