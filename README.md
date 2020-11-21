@@ -6,12 +6,12 @@
 - **Triển khai server:**
   - Server được chạy tại cổng 5500 localhost
   - Tạp bảng o_an_quan trong MySQL <br/>
-| Tên trường | Dữ liệu |
-|--------------|-------|
-| id | int (PK,AI) | 
-| email | varchar(255) |
-| password | varchar(255) | 
-| nickname | varchar(255) | 
+| Tên trường | Dữ liệu |<br/>
+|--------------|-------|<br/>
+| id | int (PK,AI) | <br/>
+| email | varchar(255) |<br/>
+| password | varchar(255) | <br/>
+| nickname | varchar(255) | <br/>
 | point | int | 
   - Sửa lại  cấu hình kết nối với mysql trong file process_database.cpp
   - Cài đặt và kết nối với MySQL bằng MySQL Connector C++
